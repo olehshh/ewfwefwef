@@ -1,2308 +1,2313 @@
-
 {
-    "openapi": "3.0.1",
-    "info": {
-      "title": "API Pagamento de Boletos",
-      "description": "Seja bem-vindo(a) à documentação do Pagamento de Boletos!\n\nBoletos são uma forma de pagamento utilizada no Brasil e em outros países, que permitem que uma pessoa ou empresa possa cobrar por um produto ou serviço de forma rápida e segura. Eles são emitidos por bancos ou instituições financeiras e podem ser pagos em qualquer agência bancária, caixa eletrônico, internet banking ou casa lotérica. O boleto é um documento que contém informações sobre o valor a ser pago, o nome do beneficiário, a data de vencimento, a linha digitável e o código de barras. Ao efetuar o pagamento do boleto, é importante verificar se todas as informações estão corretas, para evitar problemas com a cobrança.",
-      "contact": {
-        "name": "Aarin",
-        "url": "https://www.aarin.com.br",
-        "email": "suporte@aarin.com.br"
-      },
-      "version": "0.0.1"
+  "openapi": "3.0.1",
+  "info": {
+    "title": "API Pagamento de Boletos",
+    "description": "Seja bem-vindo(a) à documentação do Pagamento de Boletos!\n\nBoletos são uma forma de pagamento utilizada no Brasil e em outros países, que permitem que uma pessoa ou empresa possa cobrar por um produto ou serviço de forma rápida e segura. Eles são emitidos por bancos ou instituições financeiras e podem ser pagos em qualquer agência bancária, caixa eletrônico, internet banking ou casa lotérica. O boleto é um documento que contém informações sobre o valor a ser pago, o nome do beneficiário, a data de vencimento, a linha digitável e o código de barras. Ao efetuar o pagamento do boleto, é importante verificar se todas as informações estão corretas, para evitar problemas com a cobrança.",
+    "contact": {
+      "name": "Aarin",
+      "url": "https://www.aarin.com.br",
+      "email": "suporte@aarin.com.br"
     },
-    "servers": [
-      {
-        "url": "https://internal-api.smartcore.aarin.dev/boleto-payments/"
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "https://boleto-internal-sandbox.aarin.dev/boleto-payments/"
+    }
+  ],
+  "paths": {
+    "/payments/{id}": {
+      "get": {
+        "tags": [
+          "Payment"
+        ],
+        "summary": "Consultar Boleto",
+        "description": "Endpoint utilizado para consultar o registro de um boleto através de um identificador único",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id do boleto",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-AccountId",
+            "in": "header",
+            "description": "Id do parceiro no core bancário",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-PartnerId",
+            "in": "header",
+            "description": "Id da conta no core bancário",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registro de boleto recuperado com sucesso",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Boleto não encontrado"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
       }
-    ],
-    "paths": {
-      "/payments/{id}": {
-        "get": {
-          "tags": [
-            "Payment"
-          ],
-          "summary": "Consultar Boleto",
-          "description": "Endpoint utilizado para consultar o registro de um boleto através de um identificador único",
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "description": "Id do boleto",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-AccountId",
-              "in": "header",
-              "description": "Id do parceiro no core bancário",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-PartnerId",
-              "in": "header",
-              "description": "Id da conta no core bancário",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
+    },
+    "/payments/{id}/validate": {
+      "put": {
+        "tags": [
+          "Payment"
+        ],
+        "summary": "Validar Boleto",
+        "description": "Endpoint utilizado para validar um boleto de pagamento através de um identificador obrigatório passado pelo cliente, recebe-se como request o código de barras ou linha digitável e retornam os campos mais importantes para que o usuário confirme os dados do boleto. O retorno desse endpoint depende do tipo de boleto que será validado, retornando campos diferentes para o tipo cobrança ou tributo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id do pagamento",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
-          ],
-          "responses": {
-            "200": {
-              "description": "Registro de boleto recuperado com sucesso",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoResponseDto"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoResponseDto"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoResponseDto"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad Request",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Boleto não encontrado"
-            },
-            "500": {
-              "description": "Erro interno do servidor"
-            }
-          }
-        }
-      },
-      "/payments/{id}/validate": {
-        "put": {
-          "tags": [
-            "Payment"
-          ],
-          "summary": "Validar Boleto",
-          "description": "Endpoint utilizado para validar um boleto de pagamento através de um identificador obrigatório passado pelo cliente, recebe-se como request o código de barras ou linha digitável e retornam os campos mais importantes para que o usuário confirme os dados do boleto. O retorno desse endpoint depende do tipo de boleto que será validado, retornando campos diferentes para o tipo cobrança ou tributo",
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "description": "Id do pagamento",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-AccountId",
-              "in": "header",
-              "description": "Id da conta no core bancário",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-PartnerId",
-              "in": "header",
-              "description": "Id do parceiro no core bancário",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            }
-          ],
-          "requestBody": {
-            "content": {
-              "application/json-patch+json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ValidateBoletoRequestDto"
-                    }
-                  ]
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ValidateBoletoRequestDto"
-                    }
-                  ]
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ValidateBoletoRequestDto"
-                    }
-                  ]
-                }
-              },
-              "application/*+json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ValidateBoletoRequestDto"
-                    }
-                  ]
-                }
-              }
-            },
-            "required": true
           },
-          "responses": {
-            "200": {
-              "description": "Boleto consultado com sucesso",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.GetBoletoResponseDto"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.GetBoletoResponseDto"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.GetBoletoResponseDto"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Código de barras inválido",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                }
-              }
-            },
-            "500": {
-              "description": "Erro interno do servidor"
+          {
+            "name": "X-AccountId",
+            "in": "header",
+            "description": "Id da conta no core bancário",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
-          }
-        }
-      },
-      "/payments/{id}/confirm": {
-        "put": {
-          "tags": [
-            "Payment"
-          ],
-          "summary": "Confirmar Pagamento",
-          "description": "Endpoint utilizado para confirmar o pagamento de um boleto através de um identificador obrigatório passado pelo cliente, envia-se como request o valor a ser pago, esse será validado e posteriormente haverá o devido pagamento do boleto correspondente ao identificador que o cliente passou. O retorno desse endpoint depende do tipo de boleto que será pago, retornando campos diferentes para cobrança ou tributo",
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "description": "Id do pagamento",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-AccountId",
-              "in": "header",
-              "description": "Id da conta no core bancário",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-PartnerId",
-              "in": "header",
-              "description": "Id do parceiro no core bancário",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            }
-          ],
-          "requestBody": {
-            "content": {
-              "application/json-patch+json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ConfirmBoletoPaymentRequestDto"
-                    }
-                  ]
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ConfirmBoletoPaymentRequestDto"
-                    }
-                  ]
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ConfirmBoletoPaymentRequestDto"
-                    }
-                  ]
-                }
-              },
-              "application/*+json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ConfirmBoletoPaymentRequestDto"
-                    }
-                  ]
-                }
-              }
-            },
-            "required": true
           },
-          "responses": {
-            "200": {
-              "description": "Boleto pago com sucesso",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoReceiptResponseDto"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoReceiptResponseDto"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoReceiptResponseDto"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "PartnerId não pertence ao AccountId informado",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Boleto não encontrado"
-            },
-            "423": {
-              "description": "Horário para pagamento inválido"
-            },
-            "500": {
-              "description": "Erro interno do servidor"
+          {
+            "name": "X-PartnerId",
+            "in": "header",
+            "description": "Id do parceiro no core bancário",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
-        }
-      },
-      "/payments/{boletoId}/refund/{id}": {
-        "put": {
-          "tags": [
-            "Payment"
-          ],
-          "summary": "Estornar Pagamento",
-          "description": "Endpoint utilizado para realizar o estorno de um boleto através de um identificador obrigatório passado pelo cliente. O fluxo de estorno de boleto é um processo interno para raras ocasiões onde há a efetivação do pagamento e sensibilização da conta do cliente, porém o destinatário que deveria receber esse valor informa que o mesmo não foi creditado em sua conta. Com isso e mostrando as devidas comprovações, podemos realizar a devolução desse valor para o pagador original",
-          "parameters": [
-            {
-              "name": "boletoId",
-              "in": "path",
-              "description": "Id do boleto que será devolvido",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "id",
-              "in": "path",
-              "description": "Id do pagamento",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-AccountId",
-              "in": "header",
-              "description": "Id do parceiro no core bancário",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-PartnerId",
-              "in": "header",
-              "description": "Id da conta no core bancário",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Estorno de pagamento realizado com sucesso",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoRefundResponseDto"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoRefundResponseDto"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoRefundResponseDto"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad Request",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Boleto não encontrado"
-            },
-            "500": {
-              "description": "Erro interno do servidor"
-            }
-          }
-        }
-      },
-      "/payments/{id}/cancel": {
-        "patch": {
-          "tags": [
-            "Payment"
-          ],
-          "summary": "Cancelamento do agendamento.",
-          "description": "Endpoint utilizado para cancelar um agendamento de pagamento.",
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "description": "ID do boleto",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-AccountId",
-              "in": "header",
-              "description": "ID da Conta no Core",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-PartnerId",
-              "in": "header",
-              "description": "ID do Parceiro no Core",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Agendamento cancelado com sucesso",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.CancelScheduleResponseDto"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.CancelScheduleResponseDto"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.CancelScheduleResponseDto"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "AccountId não pertence ao PartnerId informado",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                }
-              }
-            },
-            "404": {
-              "description": "Boleto não encontrado"
-            },
-            "500": {
-              "description": "Erro interno do servidor"
-            }
-          }
-        }
-      },
-      "/payments": {
-        "get": {
-          "tags": [
-            "Payment"
-          ],
-          "summary": " Listar boletos de pagamento\r\n Endpoint utilizado para listar boletos de pagamento com base em critérios de busca, como data, status e limite de resultados.\r\n\u003Cparam name=\"partnerId\"\u003EID do Parceiro no Core\u003C/param\u003E\u003Cparam name=\"accountId\"\u003EID da Conta no Core\u003C/param\u003E\u003Cresponse code=\"200\"\u003EBusca por boletos realizada com sucesso\u003C/response\u003E\u003Cresponse code=\"400\"\u003EAlgum parâmetro informado está incorreto\u003C/response\u003E\u003Cresponse code=\"500\"\u003EFalha ao consultar boletos\u003C/response\u003E",
-          "parameters": [
-            {
-              "name": "From",
-              "in": "query",
-              "description": "Data de inicio da busca, no formato ISO 8601 yyyy-MM-ddTHH:mm:ssZ",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "date-time",
-                "example": "2023-02-10T00:00:00.000Z"
-              },
-              "example": "2023-02-10T00:00:00.000Z"
-            },
-            {
-              "name": "To",
-              "in": "query",
-              "description": "Data final da busca, no formato ISO 8601 yyyy-MM-ddTHH:mm:ssZ",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "date-time",
-                "example": "2023-02-13T03:30:00.000Z"
-              },
-              "example": "2023-02-13T03:30:00.000Z"
-            },
-            {
-              "name": "FilterByDate",
-              "in": "query",
-              "description": "Tipo de filtro a ser aplicado na busca.\r\n\nPode ser pela data de criação do boleto (createdAt) ou pela data agendada para o pagamento (scheduledDate).\r\n\nCaso não seja informado, o padrão é createdAt.",
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
               "schema": {
                 "allOf": [
                   {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.FilterByDateType"
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ValidateBoletoRequestDto"
                   }
                 ]
               }
             },
-            {
-              "name": "Status",
-              "in": "query",
-              "description": "Status atual do boleto. Pode-se usar “created” para gerados e não pagos, “completed” para os pagos, \"rejected\" para os rejeitados, \"cancelled\" para os cancelados e \"refunded\" para os estornados. É possível passar mais de um status na busca, repetindo o atributo status. Caso nenhum seja fornecido, a API considera todos os status nos resultados",
+            "application/json": {
               "schema": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
-                }
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ValidateBoletoRequestDto"
+                  }
+                ]
               }
             },
-            {
-              "name": "Pagination.FirstKeyId",
-              "in": "query",
-              "description": "Identificador do primeiro item solicitado",
+            "text/json": {
               "schema": {
-                "type": "string",
-                "format": "date-time"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ValidateBoletoRequestDto"
+                  }
+                ]
               }
             },
-            {
-              "name": "Pagination.ItemsPerPage",
-              "in": "query",
-              "description": "Quantidade máxima de registros retornados em cada página.\r\nApenas a última página pode conter uma quantidade menor de registros.\r\nSe não informado, assumirá o valor 100.\r\nMáximo de 500.",
+            "application/*+json": {
               "schema": {
-                "maximum": 100,
-                "minimum": 1,
-                "type": "integer",
-                "format": "int32"
-              }
-            },
-            {
-              "name": "X-AccountId",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-PartnerId",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ValidateBoletoRequestDto"
+                  }
+                ]
               }
             }
-          ],
-          "responses": {
-            "200": {
-              "description": "OK",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ListBoletoPaymentResponseDto"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ListBoletoPaymentResponseDto"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ListBoletoPaymentResponseDto"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad Request",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "/payments/unlock": {
-        "patch": {
-          "tags": [
-            "Payment"
-          ],
-          "summary": "Desbloquear pagamentos de boletos\r\nEndpoint utilizado para desbloquear pagamentos de boletos, permitindo que sejam confirmados ou rejeitados.\r\n\u003Cparam name=\"partnerId\"\u003EID do Parceiro no Core\u003C/param\u003E\u003Cparam name=\"accountId\"\u003EID da Conta no Core\u003C/param\u003E\u003Cresponse code=\"200\"\u003EDesbloqueio de pagamentos realizado com sucesso\u003C/response\u003E\u003Cresponse code=\"400\"\u003EAlgum parâmetro informado está incorreto\u003C/response\u003E\u003Cresponse code=\"500\"\u003EFalha ao desbloquear pagamentos\u003C/response\u003E",
-          "parameters": [
-            {
-              "name": "X-AccountId",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            },
-            {
-              "name": "X-PartnerId",
-              "in": "header",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "format": "uuid"
-              }
-            }
-          ],
-          "requestBody": {
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Boleto consultado com sucesso",
             "content": {
-              "application/json-patch+json": {
+              "text/plain": {
                 "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.UnlockPaymentsRequestDto"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.GetBoletoResponseDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.UnlockPaymentsRequestDto"
-                    }
-                  ]
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.GetBoletoResponseDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.UnlockPaymentsRequestDto"
-                    }
-                  ]
-                }
-              },
-              "application/*+json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.UnlockPaymentsRequestDto"
-                    }
-                  ]
-                }
-              }
-            },
-            "required": true
-          },
-          "responses": {
-            "200": {
-              "description": "OK",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.UnlockPaymentsResponseDto"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.UnlockPaymentsResponseDto"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.UnlockPaymentsResponseDto"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad Request",
-              "content": {
-                "text/plain": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "application/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
-                },
-                "text/json": {
-                  "schema": {
-                    "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
-                  }
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.GetBoletoResponseDto"
                 }
               }
             }
+          },
+          "400": {
+            "description": "Código de barras inválido",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor"
           }
         }
       }
     },
-    "components": {
-      "schemas": {
-        "BoletoPayments.Contracts.Enums.DsDsiAiimIdentifier": {
-          "enum": [
-            "DsDsi",
-            "Aiim"
-          ],
-          "type": "string"
-        },
-        "BoletoPayments.Contracts.Enums.FilterByDateType": {
-          "enum": [
-            "CreatedAt",
-            "Scheduled",
-            "Completed"
-          ],
-          "type": "string"
-        },
-        "BoletoPayments.Contracts.Enums.InstallmentQuota": {
-          "enum": [
-            "WithoutInstallments",
-            "One",
-            "Two",
-            "Three",
-            "Four",
-            "Five",
-            "Six",
-            "Seven",
-            "Eight",
-            "SingleQuota"
-          ],
-          "type": "string"
-        },
-        "BoletoPayments.Contracts.Enums.PaymentAction": {
-          "enum": [
-            "Confirm",
-            "Reject"
-          ],
-          "type": "string"
-        },
-        "BoletoPayments.Contracts.Enums.PaymentStatus": {
-          "enum": [
-            "Created",
-            "Processing",
-            "Completed",
-            "Rejected",
-            "Scheduled",
-            "Cancelled",
-            "Refunded"
-          ],
-          "type": "string"
-        },
-        "BoletoPayments.Contracts.Enums.PaymentType": {
-          "enum": [
-            "Charge",
-            "Tribute"
-          ],
-          "type": "string"
-        },
-        "BoletoPayments.Contracts.Enums.ProofType": {
-          "enum": [
-            "Iptu",
-            "Others",
-            "Dealership",
-            "FgtsWithConnectivitySeal",
-            "FgtsWithIdentifier",
-            "Fgts",
-            "IptuOnline",
-            "Iss",
-            "FgtsWithoutFields",
-            "GareIcms",
-            "FireTax",
-            "GnreDiDsi",
-            "GnreAiimReference",
-            "Darf",
-            "SimpleDarf",
-            "ParanaLicensing",
-            "NumberedDarf",
-            "Dare",
-            "DealershipOtherBankCards",
-            "TributesOtherBankCards",
-            "Renainf",
-            "GareIpvaSp",
-            "GnreDiDsiAiimReference",
-            "GareGeneralIcms",
-            "DasNationalSimple",
-            "ESocial",
-            "DareGnreSefazSp",
-            "GareGeneralIcmsSefazSp",
-            "GarePepIcmsSefazSp",
-            "GarePpd",
-            "GarePpdIpva",
-            "GareIpva"
-          ],
-          "type": "string"
-        },
-        "BoletoPayments.Contracts.Enums.RefundStatus": {
-          "enum": [
-            "Processing",
-            "Completed"
-          ],
-          "type": "string"
-        },
-        "BoletoPayments.Contracts.Enums.VehicleType": {
-          "enum": [
-            "WithoutIdentifier",
-            "Airship",
-            "Ship",
-            "LandVehicle"
-          ],
-          "type": "string"
-        },
-        "BoletoPayments.Contracts.Requests.ConfirmBoletoPaymentRequestDto": {
-          "required": [
-            "value"
-          ],
-          "type": "object",
-          "properties": {
-            "value": {
-              "minLength": 1,
-              "type": "string",
-              "description": "Valor a ser pago",
-              "example": "50.00"
-            },
-            "scheduleDate": {
-              "type": "string",
-              "description": "Data do agendamento para o boleto ser liquidado.",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-07-08"
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Requests.UnlockPaymentRequestDto": {
-          "type": "object",
-          "properties": {
-            "transactionId": {
+    "/payments/{id}/confirm": {
+      "put": {
+        "tags": [
+          "Payment"
+        ],
+        "summary": "Confirmar Pagamento",
+        "description": "Endpoint utilizado para confirmar o pagamento de um boleto através de um identificador obrigatório passado pelo cliente, envia-se como request o valor a ser pago, esse será validado e posteriormente haverá o devido pagamento do boleto correspondente ao identificador que o cliente passou. O retorno desse endpoint depende do tipo de boleto que será pago, retornando campos diferentes para cobrança ou tributo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id do pagamento",
+            "required": true,
+            "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "X-AccountId",
+            "in": "header",
+            "description": "Id da conta no core bancário",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-PartnerId",
+            "in": "header",
+            "description": "Id do parceiro no core bancário",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ConfirmBoletoPaymentRequestDto"
+                  }
+                ]
+              }
             },
-            "action": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ConfirmBoletoPaymentRequestDto"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ConfirmBoletoPaymentRequestDto"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.ConfirmBoletoPaymentRequestDto"
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Boleto pago com sucesso",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoReceiptResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoReceiptResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoReceiptResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PartnerId não pertence ao AccountId informado",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Boleto não encontrado"
+          },
+          "423": {
+            "description": "Horário para pagamento inválido"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/payments/{boletoId}/refund/{id}": {
+      "put": {
+        "tags": [
+          "Payment"
+        ],
+        "summary": "Estornar Pagamento",
+        "description": "Endpoint utilizado para realizar o estorno de um boleto através de um identificador obrigatório passado pelo cliente. O fluxo de estorno de boleto é um processo interno para raras ocasiões onde há a efetivação do pagamento e sensibilização da conta do cliente, porém o destinatário que deveria receber esse valor informa que o mesmo não foi creditado em sua conta. Com isso e mostrando as devidas comprovações, podemos realizar a devolução desse valor para o pagador original",
+        "parameters": [
+          {
+            "name": "boletoId",
+            "in": "path",
+            "description": "Id do boleto que será devolvido",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Id do pagamento",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-AccountId",
+            "in": "header",
+            "description": "Id do parceiro no core bancário",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-PartnerId",
+            "in": "header",
+            "description": "Id da conta no core bancário",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estorno de pagamento realizado com sucesso",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoRefundResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoRefundResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowBoletoRefundResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Boleto não encontrado"
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          }
+        }
+      }
+    },
+    "/payments/{id}/cancel": {
+      "patch": {
+        "tags": [
+          "Payment"
+        ],
+        "summary": "Cancelamento do agendamento",
+        "description": "Endpoint utilizado para cancelar um agendamento de pagamento.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID do boleto",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-AccountId",
+            "in": "header",
+            "description": "ID da Conta no Core",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-PartnerId",
+            "in": "header",
+            "description": "ID do Parceiro no Core",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Agendamento cancelado com sucesso",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.CancelScheduleResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.CancelScheduleResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.CancelScheduleResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "AccountId não pertence ao PartnerId informado",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno do servidor"
+          },
+          "404": {
+            "description": "Boleto não encontrado"
+          }
+        }
+      }
+    },
+    "/payments": {
+      "get": {
+        "tags": [
+          "Payment"
+        ],
+        "summary": "Listar boletos de pagamento",
+        "description": "Endpoint utilizado para listar boletos de pagamento com base em critérios de busca, como data, status e limite de resultados.",
+        "parameters": [
+          {
+            "name": "From",
+            "in": "query",
+            "description": "Data de inicio da busca, no formato ISO 8601 yyyy-MM-ddTHH:mm:ssZ",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2023-02-10T00:00:00.000Z"
+            },
+            "example": "2023-02-10T00:00:00.000Z"
+          },
+          {
+            "name": "To",
+            "in": "query",
+            "description": "Data final da busca, no formato ISO 8601 yyyy-MM-ddTHH:mm:ssZ",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "example": "2023-02-13T03:30:00.000Z"
+            },
+            "example": "2023-02-13T03:30:00.000Z"
+          },
+          {
+            "name": "FilterByDate",
+            "in": "query",
+            "description": "Tipo de filtro a ser aplicado na busca.\r\n\nPode ser pela data de criação do boleto (createdAt) ou pela data agendada para o pagamento (scheduledDate).\r\n\nCaso não seja informado, o padrão é createdAt.",
+            "schema": {
               "allOf": [
                 {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentAction"
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.FilterByDateType"
                 }
               ]
-            },
-            "paymentDate": {
-              "type": "string",
-              "format": "date-time",
-              "nullable": true
             }
           },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Requests.UnlockPaymentsRequestDto": {
-          "type": "object",
-          "properties": {
-            "payments": {
+          {
+            "name": "Status",
+            "in": "query",
+            "description": "Status atual do boleto. Pode-se usar “created” para gerados e não pagos, “completed” para os pagos, \"rejected\" para os rejeitados, \"cancelled\" para os cancelados e \"refunded\" para os estornados. É possível passar mais de um status na busca, repetindo o atributo status. Caso nenhum seja fornecido, a API considera todos os status nos resultados",
+            "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.UnlockPaymentRequestDto"
-              },
-              "nullable": true
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
+              }
             }
           },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Requests.ValidateBoletoRequestDto": {
-          "required": [
-            "entryData"
-          ],
-          "type": "object",
-          "properties": {
-            "entryData": {
-              "minLength": 1,
+          {
+            "name": "Pagination.FirstKeyId",
+            "in": "query",
+            "description": "Identificador do primeiro item solicitado",
+            "schema": {
               "type": "string",
-              "description": "Código de barras ou linha digitável do boleto a ser pago",
-              "example": "23708000000000000003994061000532330606010010"
-            },
-            "expectedPaymentDate": {
-              "type": "string",
-              "description": "Expectativa de data para pagamento.",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-07-08"
+              "format": "date-time"
             }
           },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.CancelScheduleResponseDto": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "description": "Identificador único do pagamento do boleto",
-              "format": "uuid",
-              "example": "168daa19-b44d-4769-8a74-c97904930741"
-            },
-            "barCode": {
-              "type": "string",
-              "description": "Código de barras do boleto",
-              "nullable": true,
-              "example": "74891117110009340911803601711066871200000020100"
-            },
-            "value": {
-              "type": "string",
-              "description": "Valor do boleto",
-              "nullable": true,
-              "example": "98.20"
-            },
-            "boletoStatus": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
-                }
-              ],
-              "description": "Status do pagamento do boleto",
-              "example": "CREATED"
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.GetBoletoResponseDto": {
-          "type": "object",
-          "properties": {
-            "bankingTransactionId": {
-              "type": "string",
-              "description": "Identificador único da conta vinculada ao pagamento do boleto",
-              "format": "uuid",
-              "nullable": true,
-              "example": "f17d47af-4875-469c-9583-0148700c5928"
-            },
-            "bankingTransactionTypeId": {
-              "type": "string",
-              "description": "Id do tipo de transação no core bancário",
-              "format": "uuid",
-              "nullable": true,
-              "example": "c4fcde0c-e931-486e-b6ae-dbd242b71469"
-            },
-            "id": {
-              "type": "string",
-              "description": "Id do boleto",
-              "format": "uuid",
-              "example": "168daa19-b44d-4769-8a74-c97904930741"
-            },
-            "dueDate": {
-              "type": "string",
-              "description": "Data de vencimento do boleto",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-07-08"
-            },
-            "receiverCompe": {
-              "type": "string",
-              "description": "Número do COMPE do banco recebedor, apenas para boletos de cobrança (charge)",
-              "nullable": true,
-              "example": "237"
-            },
-            "bankName": {
-              "type": "string",
-              "description": "Nome do banco do boleto, apenas para boletos de cobrança (charge)",
-              "nullable": true,
-              "example": "BANCO BRADESCO S.A"
-            },
-            "payeeName": {
-              "type": "string",
-              "description": "Nome do destinatário",
-              "nullable": true,
-              "example": "José da Silva Pereira"
-            },
-            "payeeCnpj": {
-              "type": "string",
-              "description": "CNPJ do destinatário",
-              "nullable": true,
-              "example": "77888999000101"
-            },
-            "discountValue": {
-              "type": "string",
-              "description": "Valor de desconto",
-              "nullable": true,
-              "example": "1.00"
-            },
-            "rebateValue": {
-              "type": "string",
-              "description": "Valor de abatimento, apenas para boletos de cobrança (charge)",
-              "nullable": true,
-              "example": "1.00"
-            },
-            "bonusValue": {
-              "type": "string",
-              "description": "Valor de bonificação, apenas para boletos de cobrança (charge)",
-              "nullable": true,
-              "example": "1.00"
-            },
-            "fineValue": {
-              "type": "string",
-              "description": "Valor de multa",
-              "nullable": true,
-              "example": "3.50"
-            },
-            "interestValue": {
-              "type": "string",
-              "description": "Valor de juros",
-              "nullable": true,
-              "example": "1.20"
-            },
-            "calculatedValue": {
-              "type": "string",
-              "description": "Valor final calculado, já incluso de descontos, juros e multa",
-              "nullable": true,
-              "example": "98.20"
-            },
-            "originalValue": {
-              "type": "string",
-              "description": "Valor original do boleto",
-              "nullable": true,
-              "example": "42.10"
-            },
-            "digitableLine": {
-              "type": "string",
-              "description": "Linha digitável do boleto",
-              "nullable": true,
-              "example": "74891117110009340911803601711066871200000020100"
-            },
-            "boletoStatus": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
-                }
-              ],
-              "description": "Status do boleto",
-              "example": "Created"
-            },
-            "expectedPaymentDate": {
-              "type": "string",
-              "description": "Expectativa de data para pagamento.",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-12-15"
-            },
-            "guarantorDrawerName": {
-              "type": "string",
-              "description": "Nome do sacador avalista, no caso de boletos de tributo é o próprio PayeeName.",
-              "nullable": true,
-              "example": "2023-12-15"
-            },
-            "guarantorDrawerDocumentNumber": {
-              "type": "string",
-              "description": "Número do CPF ou CNPJ do sacador avalista, no caso de boletos de tributo é o próprio PayeeDocument.",
-              "nullable": true,
-              "example": "2023-12-15"
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.GuarantorDrawer": {
-          "type": "object",
-          "properties": {
-            "guarantorDrawerName": {
-              "type": "string",
-              "description": "Nome do sacador avalista, no caso de boletos de tributo é o próprio PayeeName.",
-              "nullable": true,
-              "example": "2023-12-15"
-            },
-            "guarantorDrawerDocumentNumber": {
-              "type": "string",
-              "description": "Número do CPF ou CNPJ do sacador avalista, no caso de boletos de tributo é o próprio PayeeDocument.",
-              "nullable": true,
-              "example": "2023-12-15"
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.ListBoletoPaymentItemDto": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "description": "Identificador único do pagamento do boleto",
-              "format": "uuid",
-              "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
-            },
-            "accountId": {
-              "type": "string",
-              "description": "Identificador único da conta vinculada ao pagamento do boleto",
-              "format": "uuid",
-              "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
-            },
-            "partnerId": {
-              "type": "string",
-              "description": "Id do parceiro no core bancário",
-              "format": "uuid",
-              "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
-            },
-            "transactionId": {
-              "type": "string",
-              "description": "Id da transação",
-              "format": "uuid",
-              "example": "88080a55-7721-43d0-b8c1-cbe1e618953c"
-            },
-            "barCode": {
-              "type": "string",
-              "description": "Código de barras do boleto",
-              "nullable": true,
-              "example": "04191957900000999992101003482702594607494036"
-            },
-            "type": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentType"
-                }
-              ],
-              "description": "Tipo de pagamento do boleto, podendo ser tributo (tribute) ou cobrança (charge)",
-              "example": "Charge"
-            },
-            "status": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
-                }
-              ],
-              "description": "Status do pagamento do boleto",
-              "example": "Completed"
-            },
-            "values": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.Values"
-                }
-              ],
-              "description": "Objeto que contém os valores do boleto",
-              "nullable": true
-            },
-            "dueDate": {
-              "type": "string",
-              "description": "Data de vencimento do boleto",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-10-10"
-            },
-            "paymentDate": {
-              "type": "string",
-              "description": "Data de pagamento",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-10-10"
-            },
-            "createdAt": {
-              "type": "string",
-              "description": "Data de criação do pagamento (UTC -3)",
-              "format": "date-time",
-              "nullable": true,
-              "example": "2023-10-10"
-            },
-            "scheduledDate": {
-              "type": "string",
-              "description": "Data de agendamento do pagamento (UTC -3)",
-              "format": "date-time",
-              "nullable": true,
-              "example": "2023-10-10"
-            },
-            "settledAt": {
-              "type": "string",
-              "description": "Data-hora de consolidação de pagamento (UTC -3)",
-              "format": "date-time",
-              "nullable": true,
-              "example": "2023-10-10T22:00:00.0000Z"
-            },
-            "payer": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.Payer"
-                }
-              ],
-              "description": "Objeto que contém as informações do pagador",
-              "nullable": true
-            },
-            "payee": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.Payee"
-                }
-              ],
-              "description": "Objeto que contém as informações do recebedor",
-              "nullable": true
-            },
-            "guarantorDrawer": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.GuarantorDrawer"
-                }
-              ],
-              "description": "Objeto que contém as informações do sacador avalista",
-              "nullable": true
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.ListBoletoPaymentResponseDto": {
-          "type": "object",
-          "properties": {
-            "records": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ListBoletoPaymentItemDto"
-              },
-              "description": "Lista de boletos retornados conforme o critério do filtro de listagem",
-              "nullable": true
-            },
-            "_metadata": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ListPaginatedResponseDto"
-                }
-              ],
-              "description": "Dados referentes a paginação",
-              "nullable": true
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.ListPaginatedResponseDto": {
-          "type": "object",
-          "properties": {
-            "hasMore": {
-              "type": "boolean",
-              "description": "Indica se existem mais itens além dos contidos na página atual",
-              "example": true
-            },
-            "itensPerPage": {
+          {
+            "name": "Pagination.ItemsPerPage",
+            "in": "query",
+            "description": "Quantidade máxima de registros retornados em cada página.\r\nApenas a última página pode conter uma quantidade menor de registros.\r\nSe não informado, assumirá o valor 100.\r\nMáximo de 500.",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
               "type": "integer",
-              "description": "Indica o máximo de itens retornados por página",
-              "format": "int32",
-              "example": 100
-            },
-            "lastKeyId": {
-              "type": "string",
-              "description": "Identificador do último item solicitado e se refere à data de criação do boleto, no formato ISO 8601 yyyy-MM-ddTHH:mm:ssZ",
-              "format": "date-time",
-              "nullable": true,
-              "example": "2024-04-09T17:33:57.873388Z"
+              "format": "int32"
             }
           },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.Payee": {
-          "type": "object",
-          "properties": {
-            "payeeName": {
-              "type": "string",
-              "description": "Beneficiário do boleto",
-              "nullable": true,
-              "example": "Maria Calçados LTDA"
-            },
-            "payeeDocumentNumber": {
-              "type": "string",
-              "description": "Número do CPF ou CNPJ do beneficiário, contendo apenas números",
-              "nullable": true,
-              "example": "22444555000133"
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.Payer": {
-          "type": "object",
-          "properties": {
-            "payerName": {
-              "type": "string",
-              "description": "Nome do pagador do boleto",
-              "nullable": true,
-              "example": "João da Silva Costa"
-            },
-            "payerDocumentNumber": {
-              "type": "string",
-              "description": "Número do CPF ou CNPJ do pagador, contendo apenas números",
-              "nullable": true,
-              "example": "77788899900"
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.ShowBoletoReceiptResponseDto": {
-          "type": "object",
-          "properties": {
-            "tribute": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowTributeDto"
-                }
-              ],
-              "description": "Objeto de retorno para pagamentos de boletos do tipo tributo",
-              "nullable": true
-            },
-            "charge": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowChargeDto"
-                }
-              ],
-              "description": "Objeto de retorno para pagamentos de boletos do tipo cobraça ou aporte",
-              "nullable": true
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.ShowBoletoRefundResponseDto": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "description": "Id da devolução",
-              "format": "uuid",
-              "example": "eff5af0b-cecf-4e17-884b-e6a650f583ad"
-            },
-            "boletoId": {
-              "type": "string",
-              "description": "Id do boleto que terá o pagamento estornado",
-              "format": "uuid",
-              "example": "79473cc1-d363-4fe7-88e2-c3ef282cb151"
-            },
-            "accountId": {
-              "type": "string",
-              "description": "Id da conta no core bancário",
-              "format": "uuid",
-              "example": "0a29e18b-21ab-44a5-80e3-3822a11bafb9"
-            },
-            "partnerId": {
-              "type": "string",
-              "description": "Id do parceiro no core bancário",
-              "format": "uuid",
-              "example": "e25b6d09-1c5c-4473-8a64-9dd5a93bec88"
-            },
-            "bankingTransactionId": {
-              "type": "string",
-              "description": "Id da transação no core bancário",
-              "format": "uuid",
-              "example": "4bb71db8-e929-4205-a9f4-24f8631dae2d"
-            },
-            "bankingTransactionTypeId": {
-              "type": "string",
-              "description": "Id do tipo de transação no core bancário",
-              "format": "uuid",
-              "example": "e737130a-c8a6-4427-bb74-c50c98aa39e2"
-            },
-            "barCode": {
-              "type": "string",
-              "description": "Código de barras do boleto original",
-              "nullable": true,
-              "example": "23793939700000501000001090009990075100265040"
-            },
-            "value": {
-              "type": "string",
-              "description": "Valor que foi pago na devolução do boleto",
-              "nullable": true,
-              "example": "100.00"
-            },
-            "originalValue": {
-              "type": "string",
-              "description": "Valor original do boleto. Deve ser igual ao valor da devolução",
-              "nullable": true,
-              "example": "100.00"
-            },
-            "payee": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.TransactionParty"
-                }
-              ],
-              "description": "Informações do beneficiário da devolução",
-              "nullable": true
-            },
-            "status": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.RefundStatus"
-                }
-              ],
-              "description": "Status da devolução",
-              "example": "Completed"
-            },
-            "settledAt": {
-              "type": "string",
-              "description": "Data-hora que ocorreu a devolução",
-              "format": "date-time",
-              "nullable": true,
-              "example": "2023-07-20T12:30:45.000Z"
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.ShowBoletoResponseDto": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string",
-              "description": "Identificador único do pagamento do boleto",
-              "format": "uuid",
-              "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
-            },
-            "accountId": {
-              "type": "string",
-              "description": "Identificador único da conta vinculada ao pagamento do boleto",
-              "format": "uuid",
-              "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
-            },
-            "partnerId": {
-              "type": "string",
-              "description": "Id do parceiro no core bancário",
-              "format": "uuid",
-              "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
-            },
-            "transactionId": {
-              "type": "string",
-              "description": "Id da transação",
-              "format": "uuid",
-              "example": "88080a55-7721-43d0-b8c1-cbe1e618953c"
-            },
-            "bankingTransactionId": {
-              "type": "string",
-              "description": "Id da transação no core bancário",
-              "format": "uuid",
-              "nullable": true,
-              "example": "88080a55-7721-43d0-b8c1-cbe1e618953c"
-            },
-            "bankingTransactionTypeId": {
-              "type": "string",
-              "description": "Id do tipo de transação no core bancário",
-              "format": "uuid",
-              "nullable": true,
-              "example": "4270fad6-a348-4a3b-da85-4f4818ae4fd5"
-            },
-            "barCode": {
-              "type": "string",
-              "description": "Código de barras do boleto",
-              "nullable": true,
-              "example": "04191957900000999992101003482702594607494036"
-            },
-            "externalTransactionId": {
-              "type": "string",
-              "description": "Id da transação no provedor liquidante",
-              "nullable": true,
-              "example": "396051802"
-            },
-            "fineValue": {
-              "type": "string",
-              "description": "Valor de multa",
-              "nullable": true,
-              "example": "2.00"
-            },
-            "interestValue": {
-              "type": "string",
-              "description": "Valor de juros",
-              "nullable": true,
-              "example": "1.00"
-            },
-            "discountValue": {
-              "type": "string",
-              "description": "Valor de desconto",
-              "nullable": true,
-              "example": "3.00"
-            },
-            "originalValue": {
-              "type": "string",
-              "description": "Valor original do boleto",
-              "nullable": true,
-              "example": "100.00"
-            },
-            "calculatedValue": {
-              "type": "string",
-              "description": "Valor final calculado, já contendo descontos, juros e multa",
-              "nullable": true,
-              "example": "156.40"
-            },
-            "paidValue": {
-              "type": "string",
-              "description": "Valor pago - o valor pago pode ser diferente do valor calculado, caso haja prévia autorização do emissor do boleto para que isso ocorra",
-              "nullable": true,
-              "example": "150.20"
-            },
-            "dueDate": {
-              "type": "string",
-              "description": "Data de vencimento do boleto",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-10-10"
-            },
-            "paymentDate": {
-              "type": "string",
-              "description": "Data de pagamento",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-10-10"
-            },
-            "settledAt": {
-              "type": "string",
-              "description": "Data-hora de consolidação de pagamento (UTC -3)",
-              "format": "date-time",
-              "nullable": true,
-              "example": "2023-10-10T22:00:00.0000Z"
-            },
-            "type": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentType"
-                }
-              ],
-              "description": "Tipo de pagamento do boleto, podendo ser tributo (tribute) ou cobrança (charge)",
-              "example": "Charge"
-            },
-            "status": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
-                }
-              ],
-              "description": "Status do pagamento do boleto",
-              "example": "Completed"
-            },
-            "payerName": {
-              "type": "string",
-              "description": "Nome do pagador do boleto",
-              "nullable": true,
-              "example": "João da Silva Costa"
-            },
-            "payerDocumentNumber": {
-              "type": "string",
-              "description": "Número do CPF ou CNPJ do pagador, contendo apenas números",
-              "nullable": true,
-              "example": "77788899900"
-            },
-            "payeeName": {
-              "type": "string",
-              "description": "Beneficiário do boleto",
-              "nullable": true,
-              "example": "Maria Calçados LTDA"
-            },
-            "payeeDocumentNumber": {
-              "type": "string",
-              "description": "Número do CPF ou CNPJ do beneficiário, contendo apenas números",
-              "nullable": true,
-              "example": "22444555000133"
-            },
-            "guarantorDrawerName": {
-              "type": "string",
-              "description": "Nome do sacador avalista, no caso de boletos de tributo é o próprio PayeeName.",
-              "nullable": true,
-              "example": "2023-12-15"
-            },
-            "guarantorDrawerDocumentNumber": {
-              "type": "string",
-              "description": "Número do CPF ou CNPJ do sacador avalista, no caso de boletos de tributo é o próprio PayeeDocument.",
-              "nullable": true,
-              "example": "2023-12-15"
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.ShowChargeDto": {
-          "type": "object",
-          "properties": {
-            "boletoId": {
-              "type": "string",
-              "description": "Identificador único do pagamento do boleto",
-              "format": "uuid",
-              "example": "c38a8589-8892-456e-8f52-b2d8e1096f73"
-            },
-            "status": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
-                }
-              ],
-              "description": "Status do pagamento do boleto",
-              "nullable": true
-            },
-            "bankingTransactionId": {
-              "type": "string",
-              "description": "ID da transação no core bancário",
-              "format": "uuid",
-              "nullable": true,
-              "example": "f17d47af-4875-469c-9583-0148700c5928"
-            },
-            "bankingTransactionTypeId": {
-              "type": "string",
-              "description": "Id do tipo de transação no core bancário",
-              "format": "uuid",
-              "nullable": true,
-              "example": "c4fcde0c-e931-486e-b6ae-dbd242b71469"
-            },
-            "debitedDraweeName": {
-              "type": "string",
-              "description": "Nome do proprietário da conta bancária que o dinheiro irá ser debitado",
-              "nullable": true,
-              "example": "Maria da Silva Rocha"
-            },
-            "payeeTradeName": {
-              "type": "string",
-              "description": "Nome Fantasia do beneficiário",
-              "nullable": true,
-              "example": "Calçados Mágicos"
-            },
-            "payeeName": {
-              "type": "string",
-              "description": "Nome do beneficiário",
-              "nullable": true,
-              "example": "José da Silva Pereira"
-            },
-            "payeeDocumentNumber": {
-              "type": "string",
-              "description": "Número do CPF ou CNPJ do beneficiário, contendo apenas números",
-              "nullable": true,
-              "example": "77788899900"
-            },
-            "payerName": {
-              "type": "string",
-              "description": "Nome do pagador",
-              "nullable": true,
-              "example": "Carlos Martins da Silva"
-            },
-            "payerDocumentNumber": {
-              "type": "string",
-              "description": "Número do CPF ou CNPJ do pagador, contendo apenas números",
-              "nullable": true,
-              "example": "77788899900"
-            },
-            "dueDate": {
-              "type": "string",
-              "description": "Data de vencimento do boleto",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-10-25"
-            },
-            "originalValue": {
-              "type": "string",
-              "description": "Valor original do boleto",
-              "nullable": true,
-              "example": "50.00"
-            },
-            "calculatedValue": {
-              "type": "string",
-              "description": "Valor final calculado, já contendo descontos, juros e multa",
-              "nullable": true,
-              "example": "56.40"
-            },
-            "fineValue": {
-              "type": "string",
-              "description": "Valor de multa",
-              "nullable": true,
-              "example": "2.00"
-            },
-            "interestValue": {
-              "type": "string",
-              "description": "Valor de juros",
-              "nullable": true,
-              "example": "5.00"
-            },
-            "discountValue": {
-              "type": "string",
-              "description": "Valor de desconto",
-              "nullable": true,
-              "example": "1.00"
-            },
-            "rebateValue": {
-              "type": "string",
-              "description": "Valor de abatimento",
-              "nullable": true,
-              "example": "1.00"
-            },
-            "paidValue": {
-              "type": "string",
-              "description": "Valor pago - o valor pago pode ser diferente do valor calculado, caso haja prévia autorização do emissor do boleto para que isso ocorra",
-              "nullable": true,
-              "example": "54.20"
-            },
-            "transactionId": {
-              "type": "string",
-              "description": "Id da transação",
-              "format": "uuid",
-              "example": "75906707-8c31-479c-b354-aa805c4cefbc"
-            },
-            "digitableLine": {
-              "type": "string",
-              "description": "Linha digitável do boleto",
-              "nullable": true,
-              "example": "74891117110009340911803601711066871200000020100"
-            },
-            "receiverBankName": {
-              "type": "string",
-              "description": "Nome do banco recebedor do valor do boleto",
-              "nullable": true,
-              "example": "BANCO BRADESCO S.A"
-            },
-            "bankName": {
-              "type": "string",
-              "description": "Nome do banco emissor do boleto",
-              "nullable": true,
-              "example": "BANCO BRADESCO S.A"
-            },
-            "maxValue": {
-              "type": "string",
-              "description": "Valor máximo que é aceito como pagamento do boleto",
-              "nullable": true,
-              "example": "1000.00"
-            },
-            "minValue": {
-              "type": "string",
-              "description": "Valor mínimo que é aceito como pagamento do boleto",
-              "nullable": true,
-              "example": "2.00"
-            },
-            "scheduleDate": {
-              "type": "string",
-              "description": "Data do agendamento para o boleto ser liquidado",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-07-08"
-            },
-            "paymentDate": {
-              "type": "string",
-              "description": "Data em que o pagamento foi efetivado.",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-07-08"
-            },
-            "debitDate": {
-              "type": "string",
-              "description": "Data em que o valor é debitado da conta do cliente pagador.",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-07-08"
-            },
-            "guarantorDrawerName": {
-              "type": "string",
-              "description": "Nome do sacador avalista, no caso de boletos de tributo é o próprio CompanyName",
-              "nullable": true,
-              "example": "2023-12-15"
-            },
-            "guarantorDrawerDocumentNumber": {
-              "type": "string",
-              "description": "Número do CPF ou CNPJ do sacador avalista, no caso de boletos de tributo é o próprio CnpjCeiIdentifier",
-              "nullable": true,
-              "example": "2023-12-15"
-            },
-            "protocolNumberCbca": {
-              "type": "string",
-              "description": "Número do protocolo gerado pelo banco provedor.",
-              "nullable": true,
-              "example": "85243622"
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.ShowTributeDto": {
-          "type": "object",
-          "properties": {
-            "boletoId": {
-              "type": "string",
-              "description": "Identificador único do pagamento do boleto",
-              "format": "uuid",
-              "example": "c3f18907-654b-4945-8407-1e501390dd43"
-            },
-            "status": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
-                }
-              ],
-              "description": "Status do pagamento do boleto",
-              "nullable": true
-            },
-            "bankingTransactionId": {
-              "type": "string",
-              "description": "ID da transação no core bancário",
-              "format": "uuid",
-              "nullable": true,
-              "example": "f17d47af-4875-469c-9583-0148700c5928"
-            },
-            "bankingTransactionTypeId": {
-              "type": "string",
-              "description": "Id do tipo de transação no core bancário",
-              "format": "uuid",
-              "nullable": true,
-              "example": "c4fcde0c-e931-486e-b6ae-dbd242b71469"
-            },
-            "bank": {
-              "type": "integer",
-              "description": "Número do COMPE do banco do boleto",
-              "format": "int32",
-              "example": 237
-            },
-            "bankAuthentication": {
-              "type": "integer",
-              "description": "Autenticação bancária",
-              "format": "int32",
-              "example": 45509962
-            },
-            "debitDate": {
-              "type": "string",
-              "description": "Data em que o valor é debitado da conta do cliente pagador.",
-              "format": "date",
-              "example": "2023-06-20"
-            },
-            "dueDate": {
-              "type": "string",
-              "description": "Data de vencimento do boleto",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-06-21"
-            },
-            "calculatedValue": {
-              "type": "string",
-              "description": "Valor final calculado, já incluso descontos, juros e multa",
-              "nullable": true,
-              "example": "92.50"
-            },
-            "paidValue": {
-              "type": "string",
-              "description": "Valor pago",
-              "nullable": true,
-              "example": "92.50"
-            },
-            "fineValue": {
-              "type": "string",
-              "description": "Valor de multa",
-              "nullable": true,
-              "example": "1.00"
-            },
-            "interestValue": {
-              "type": "string",
-              "description": "Valor de juros",
-              "nullable": true,
-              "example": "1.20"
-            },
-            "discountValue": {
-              "type": "string",
-              "description": "Valor de desconto",
-              "nullable": true,
-              "example": "2.30"
-            },
-            "keyFieldIdentifier": {
-              "type": "string",
-              "description": "Identificação do campo-chave do boleto",
-              "nullable": true,
-              "example": "RGI"
-            },
-            "documentKeyFieldIdentifier": {
-              "type": "string",
-              "description": "Identificação do campo-chave do documento",
-              "nullable": true,
-              "example": "09831571"
-            },
-            "tradeName": {
-              "type": "string",
-              "description": "Nome fantasia da empresa que está cobrando o tributo",
-              "nullable": true,
-              "example": "SABESP/SP"
-            },
-            "expirationDate": {
-              "type": "string",
-              "description": "Data de expiração do boleto",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-07-15"
-            },
-            "cnpjCeiIdentifier": {
-              "type": "string",
-              "description": "Identificador do CPF ou CNPJ",
-              "nullable": true,
-              "example": null
-            },
-            "proofType": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.ProofType"
-                }
-              ],
-              "description": "Tipo do comprovante de pagamento",
-              "example": "Iptu"
-            },
-            "incomeCode": {
-              "type": "string",
-              "description": "Código da receita do pagamento",
-              "nullable": true,
-              "example": "0013"
-            },
-            "stateCode": {
-              "type": "string",
-              "description": "Estado abreviado, com dois caracteres",
-              "nullable": true,
-              "example": "SP"
-            },
-            "diDsiAiim": {
-              "type": "string",
-              "description": "DI/DSI - AIIM",
-              "nullable": true,
-              "example": "0"
-            },
-            "cityCode": {
-              "type": "string",
-              "description": "Código do município",
-              "nullable": true,
-              "example": "2927408"
-            },
-            "dsDsiAiimIdentifier": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.DsDsiAiimIdentifier"
-                }
-              ],
-              "description": "Identificador do DS/DSI - AIIM",
-              "nullable": true,
-              "example": "0"
-            },
-            "dsDsiAiimDescription": {
-              "type": "string",
-              "description": "Descrição do DS/DSI - AIIM",
-              "nullable": true,
-              "example": "0"
-            },
-            "paymentDate": {
-              "type": "string",
-              "description": "Data de pagamento",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-06-20"
-            },
-            "verificationTime": {
-              "type": "string",
-              "description": "Período de apuração",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-06-25"
-            },
-            "accumulateGrossIncomeAmount": {
-              "type": "string",
-              "description": "Valor da receita bruta acumulada",
-              "nullable": true,
-              "example": "10.0"
-            },
-            "percentageValue": {
-              "type": "string",
-              "description": "Percentual aplicado",
-              "nullable": true,
-              "example": "0.1"
-            },
-            "companyName": {
-              "type": "string",
-              "description": "Nome da empresa conveniada",
-              "nullable": true,
-              "example": "SABESP"
-            },
-            "barCode": {
-              "type": "string",
-              "description": "Código de barras do boleto",
-              "nullable": true,
-              "example": "04191957900000999992101003482702594607494036"
-            },
-            "dareControlNumber": {
-              "type": "string",
-              "description": "Número de controle do DARE",
-              "nullable": true,
-              "example": "180190000822812"
-            },
-            "tabNumber": {
-              "type": "string",
-              "description": "Número da guia",
-              "nullable": true,
-              "example": "1"
-            },
-            "labelNumber": {
-              "type": "string",
-              "description": "Número da etiqueta",
-              "nullable": true,
-              "example": "2"
-            },
-            "vehicleType": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.VehicleType"
-                }
-              ],
-              "description": "Tipo de veículo",
-              "example": "Airship"
-            },
-            "vehicleIdentifier": {
-              "type": "string",
-              "description": "Identificador do veículo",
-              "nullable": true,
-              "example": "ABC1234"
-            },
-            "quota": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.InstallmentQuota"
-                }
-              ],
-              "description": "Informa o tipo de parcelamento do IPVA",
-              "nullable": true,
-              "example": "Three"
-            },
-            "dueDateDarf": {
-              "type": "string",
-              "description": "Data de vencimento para o comprovante Darf",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-06-19"
-            },
-            "darfIncomeCode": {
-              "type": "string",
-              "description": "Código da receita para o comprovante Darf",
-              "nullable": true,
-              "example": "0019"
-            },
-            "darfPrincipalDocumentNumber": {
-              "type": "string",
-              "description": "CPF ou CNPJ para o comprovante Darf, contendo apenas números e sem o dígito verificador",
-              "nullable": true,
-              "example": "777888999"
-            },
-            "competenceDate": {
-              "type": "string",
-              "description": "Data de competência",
-              "nullable": true,
-              "example": "07-2023"
-            },
-            "exerciseYear": {
-              "type": "string",
-              "description": "Ano de exercicio",
-              "nullable": true,
-              "example": "2023"
-            },
-            "connectivitySeal": {
-              "type": "string",
-              "description": "Lacre de conectividade",
-              "nullable": true,
-              "example": "000000000000000"
-            },
-            "fgtsIdentifier": {
-              "type": "string",
-              "description": "Identificador do FGTS",
-              "nullable": true,
-              "example": "000000000000000"
-            },
-            "paymentTime": {
-              "type": "string",
-              "description": "Hora do pagamento",
-              "nullable": true,
-              "example": "131254"
-            },
-            "scheduleDate": {
-              "type": "string",
-              "description": "Data do agendamento da liquidação",
-              "format": "date",
-              "nullable": true,
-              "example": "2023-07-08"
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.TransactionParty": {
-          "type": "object",
-          "properties": {
-            "name": {
-              "type": "string",
-              "description": "Nome do beneficiário",
-              "nullable": true,
-              "example": "José da Silva Pereira"
-            },
-            "document": {
-              "type": "string",
-              "description": "Documento do beneficiário, contendo apenas números, pode ser CPF ou CNPJ",
-              "nullable": true,
-              "example": "77788899900"
-            },
-            "accountNumber": {
-              "type": "string",
-              "description": "Conta do beneficiário",
-              "nullable": true,
-              "example": "75557"
-            },
-            "branch": {
-              "type": "string",
-              "description": "Agência do beneficiário",
-              "nullable": true,
-              "example": "3553"
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.UnlockPaymentResponseDto": {
-          "type": "object",
-          "properties": {
-            "transactionId": {
+          {
+            "name": "X-AccountId",
+            "in": "header",
+            "description": "ID da Conta no Core",
+            "required": true,
+            "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "status": {
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
+            }
+          },
+          {
+            "name": "X-PartnerId",
+            "in": "header",
+            "description": "ID do Parceiro no Core",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Busca por boletos realizada com sucesso",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ListBoletoPaymentResponseDto"
                 }
-              ],
-              "nullable": true
-            },
-            "message": {
-              "type": "string",
-              "nullable": true
-            }
-          },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.UnlockPaymentsResponseDto": {
-          "type": "object",
-          "properties": {
-            "payments": {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.UnlockPaymentResponseDto"
               },
-              "nullable": true
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ListBoletoPaymentResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ListBoletoPaymentResponseDto"
+                }
+              }
             }
           },
-          "additionalProperties": false
-        },
-        "BoletoPayments.Contracts.Responses.Values": {
-          "type": "object",
-          "properties": {
-            "fineValue": {
-              "type": "string",
-              "description": "Valor de multa",
-              "nullable": true,
-              "example": "2.00"
-            },
-            "interestValue": {
-              "type": "string",
-              "description": "Valor de juros",
-              "nullable": true,
-              "example": "1.00"
-            },
-            "discountValue": {
-              "type": "string",
-              "description": "Valor de desconto",
-              "nullable": true,
-              "example": "3.00"
-            },
-            "originalValue": {
-              "type": "string",
-              "description": "Valor original do boleto",
-              "nullable": true,
-              "example": "100.00"
-            },
-            "calculatedValue": {
-              "type": "string",
-              "description": "Valor final calculado, já contendo descontos, juros e multa",
-              "nullable": true,
-              "example": "156.40"
-            },
-            "paidValue": {
-              "type": "string",
-              "description": "Valor pago - o valor pago pode ser diferente do valor calculado, caso haja prévia autorização do emissor do boleto para que isso ocorra",
-              "nullable": true,
-              "example": "150.20"
+          "400": {
+            "description": "Algum parâmetro informado está incorreto",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
             }
           },
-          "additionalProperties": false
-        },
-        "Microsoft.AspNetCore.Mvc.ProblemDetails": {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "nullable": true
-            },
-            "title": {
-              "type": "string",
-              "nullable": true
-            },
-            "status": {
-              "type": "integer",
-              "format": "int32",
-              "nullable": true
-            },
-            "detail": {
-              "type": "string",
-              "nullable": true
-            },
-            "instance": {
-              "type": "string",
-              "nullable": true
-            }
-          },
-          "additionalProperties": {
-  
+          "500": {
+            "description": "Falha ao consultar boletos"
           }
         }
       }
     },
-    "x-readme": {
-      "explorer-enabled": true,
-      "proxy-enabled": true
+    "/payments/unlock": {
+      "patch": {
+        "tags": [
+          "Payment"
+        ],
+        "summary": "Desbloquear pagamentos de boletos",
+        "description": "Endpoint utilizado para desbloquear pagamentos de boletos, permitindo que sejam confirmados ou rejeitados.",
+        "parameters": [
+          {
+            "name": "X-AccountId",
+            "in": "header",
+            "description": "ID da Conta no Core",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-PartnerId",
+            "in": "header",
+            "description": "ID do Parceiro no Core",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json-patch+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.UnlockPaymentsRequestDto"
+                  }
+                ]
+              }
+            },
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.UnlockPaymentsRequestDto"
+                  }
+                ]
+              }
+            },
+            "text/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.UnlockPaymentsRequestDto"
+                  }
+                ]
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.UnlockPaymentsRequestDto"
+                  }
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Desbloqueio de pagamentos realizado com sucesso",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.UnlockPaymentsResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.UnlockPaymentsResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.UnlockPaymentsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Algum parâmetro informado está incorreto",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Falha ao desbloquear pagamentos"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BoletoPayments.Contracts.Enums.DsDsiAiimIdentifier": {
+        "enum": [
+          "DsDsi",
+          "Aiim"
+        ],
+        "type": "string"
+      },
+      "BoletoPayments.Contracts.Enums.FilterByDateType": {
+        "enum": [
+          "CreatedAt",
+          "Scheduled",
+          "Completed"
+        ],
+        "type": "string"
+      },
+      "BoletoPayments.Contracts.Enums.InstallmentQuota": {
+        "enum": [
+          "WithoutInstallments",
+          "One",
+          "Two",
+          "Three",
+          "Four",
+          "Five",
+          "Six",
+          "Seven",
+          "Eight",
+          "SingleQuota"
+        ],
+        "type": "string"
+      },
+      "BoletoPayments.Contracts.Enums.PaymentAction": {
+        "enum": [
+          "Confirm",
+          "Reject"
+        ],
+        "type": "string"
+      },
+      "BoletoPayments.Contracts.Enums.PaymentStatus": {
+        "enum": [
+          "Created",
+          "Processing",
+          "Completed",
+          "Rejected",
+          "Scheduled",
+          "Cancelled",
+          "Refunded"
+        ],
+        "type": "string"
+      },
+      "BoletoPayments.Contracts.Enums.PaymentType": {
+        "enum": [
+          "Charge",
+          "Tribute"
+        ],
+        "type": "string"
+      },
+      "BoletoPayments.Contracts.Enums.ProofType": {
+        "enum": [
+          "Iptu",
+          "Others",
+          "Dealership",
+          "FgtsWithConnectivitySeal",
+          "FgtsWithIdentifier",
+          "Fgts",
+          "IptuOnline",
+          "Iss",
+          "FgtsWithoutFields",
+          "GareIcms",
+          "FireTax",
+          "GnreDiDsi",
+          "GnreAiimReference",
+          "Darf",
+          "SimpleDarf",
+          "ParanaLicensing",
+          "NumberedDarf",
+          "Dare",
+          "DealershipOtherBankCards",
+          "TributesOtherBankCards",
+          "Renainf",
+          "GareIpvaSp",
+          "GnreDiDsiAiimReference",
+          "GareGeneralIcms",
+          "DasNationalSimple",
+          "ESocial",
+          "DareGnreSefazSp",
+          "GareGeneralIcmsSefazSp",
+          "GarePepIcmsSefazSp",
+          "GarePpd",
+          "GarePpdIpva",
+          "GareIpva"
+        ],
+        "type": "string"
+      },
+      "BoletoPayments.Contracts.Enums.RefundStatus": {
+        "enum": [
+          "Processing",
+          "Completed"
+        ],
+        "type": "string"
+      },
+      "BoletoPayments.Contracts.Enums.VehicleType": {
+        "enum": [
+          "WithoutIdentifier",
+          "Airship",
+          "Ship",
+          "LandVehicle"
+        ],
+        "type": "string"
+      },
+      "BoletoPayments.Contracts.Requests.ConfirmBoletoPaymentRequestDto": {
+        "required": [
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Valor a ser pago",
+            "example": "50.00"
+          },
+          "scheduleDate": {
+            "type": "string",
+            "description": "Data do agendamento para o boleto ser liquidado.",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-07-08"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Requests.UnlockPaymentRequestDto": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "action": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentAction"
+              }
+            ]
+          },
+          "paymentDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Requests.UnlockPaymentsRequestDto": {
+        "type": "object",
+        "properties": {
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoletoPayments.Contracts.Requests.UnlockPaymentRequestDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Requests.ValidateBoletoRequestDto": {
+        "required": [
+          "entryData"
+        ],
+        "type": "object",
+        "properties": {
+          "entryData": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Código de barras ou linha digitável do boleto a ser pago",
+            "example": "23708000000000000003994061000532330606010010"
+          },
+          "expectedPaymentDate": {
+            "type": "string",
+            "description": "Expectativa de data para pagamento.",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-07-08"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.CancelScheduleResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador único do pagamento do boleto",
+            "format": "uuid",
+            "example": "168daa19-b44d-4769-8a74-c97904930741"
+          },
+          "barCode": {
+            "type": "string",
+            "description": "Código de barras do boleto",
+            "nullable": true,
+            "example": "74891117110009340911803601711066871200000020100"
+          },
+          "value": {
+            "type": "string",
+            "description": "Valor do boleto",
+            "nullable": true,
+            "example": "98.20"
+          },
+          "boletoStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
+              }
+            ],
+            "description": "Status do pagamento do boleto",
+            "example": "CREATED"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.GetBoletoResponseDto": {
+        "type": "object",
+        "properties": {
+          "bankingTransactionId": {
+            "type": "string",
+            "description": "Identificador único da conta vinculada ao pagamento do boleto",
+            "format": "uuid",
+            "nullable": true,
+            "example": "f17d47af-4875-469c-9583-0148700c5928"
+          },
+          "bankingTransactionTypeId": {
+            "type": "string",
+            "description": "Id do tipo de transação no core bancário",
+            "format": "uuid",
+            "nullable": true,
+            "example": "c4fcde0c-e931-486e-b6ae-dbd242b71469"
+          },
+          "id": {
+            "type": "string",
+            "description": "Id do boleto",
+            "format": "uuid",
+            "example": "168daa19-b44d-4769-8a74-c97904930741"
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Data de vencimento do boleto",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-07-08"
+          },
+          "receiverCompe": {
+            "type": "string",
+            "description": "Número do COMPE do banco recebedor, apenas para boletos de cobrança (charge)",
+            "nullable": true,
+            "example": "237"
+          },
+          "bankName": {
+            "type": "string",
+            "description": "Nome do banco do boleto, apenas para boletos de cobrança (charge)",
+            "nullable": true,
+            "example": "BANCO BRADESCO S.A"
+          },
+          "payeeName": {
+            "type": "string",
+            "description": "Nome do destinatário",
+            "nullable": true,
+            "example": "José da Silva Pereira"
+          },
+          "payeeCnpj": {
+            "type": "string",
+            "description": "CNPJ do destinatário",
+            "nullable": true,
+            "example": "77888999000101"
+          },
+          "discountValue": {
+            "type": "string",
+            "description": "Valor de desconto",
+            "nullable": true,
+            "example": "1.00"
+          },
+          "rebateValue": {
+            "type": "string",
+            "description": "Valor de abatimento, apenas para boletos de cobrança (charge)",
+            "nullable": true,
+            "example": "1.00"
+          },
+          "bonusValue": {
+            "type": "string",
+            "description": "Valor de bonificação, apenas para boletos de cobrança (charge)",
+            "nullable": true,
+            "example": "1.00"
+          },
+          "fineValue": {
+            "type": "string",
+            "description": "Valor de multa",
+            "nullable": true,
+            "example": "3.50"
+          },
+          "interestValue": {
+            "type": "string",
+            "description": "Valor de juros",
+            "nullable": true,
+            "example": "1.20"
+          },
+          "calculatedValue": {
+            "type": "string",
+            "description": "Valor final calculado, já incluso de descontos, juros e multa",
+            "nullable": true,
+            "example": "98.20"
+          },
+          "originalValue": {
+            "type": "string",
+            "description": "Valor original do boleto",
+            "nullable": true,
+            "example": "42.10"
+          },
+          "digitableLine": {
+            "type": "string",
+            "description": "Linha digitável do boleto",
+            "nullable": true,
+            "example": "74891117110009340911803601711066871200000020100"
+          },
+          "boletoStatus": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
+              }
+            ],
+            "description": "Status do boleto",
+            "example": "Created"
+          },
+          "expectedPaymentDate": {
+            "type": "string",
+            "description": "Expectativa de data para pagamento.",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-12-15"
+          },
+          "guarantorDrawerName": {
+            "type": "string",
+            "description": "Nome do sacador avalista, no caso de boletos de tributo é o próprio PayeeName.",
+            "nullable": true,
+            "example": "2023-12-15"
+          },
+          "guarantorDrawerDocumentNumber": {
+            "type": "string",
+            "description": "Número do CPF ou CNPJ do sacador avalista, no caso de boletos de tributo é o próprio PayeeDocument.",
+            "nullable": true,
+            "example": "2023-12-15"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.GuarantorDrawer": {
+        "type": "object",
+        "properties": {
+          "guarantorDrawerName": {
+            "type": "string",
+            "description": "Nome do sacador avalista, no caso de boletos de tributo é o próprio PayeeName.",
+            "nullable": true,
+            "example": "2023-12-15"
+          },
+          "guarantorDrawerDocumentNumber": {
+            "type": "string",
+            "description": "Número do CPF ou CNPJ do sacador avalista, no caso de boletos de tributo é o próprio PayeeDocument.",
+            "nullable": true,
+            "example": "2023-12-15"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.ListBoletoPaymentItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador único do pagamento do boleto",
+            "format": "uuid",
+            "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
+          },
+          "accountId": {
+            "type": "string",
+            "description": "Identificador único da conta vinculada ao pagamento do boleto",
+            "format": "uuid",
+            "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
+          },
+          "partnerId": {
+            "type": "string",
+            "description": "Id do parceiro no core bancário",
+            "format": "uuid",
+            "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
+          },
+          "transactionId": {
+            "type": "string",
+            "description": "Id da transação",
+            "format": "uuid",
+            "example": "88080a55-7721-43d0-b8c1-cbe1e618953c"
+          },
+          "barCode": {
+            "type": "string",
+            "description": "Código de barras do boleto",
+            "nullable": true,
+            "example": "04191957900000999992101003482702594607494036"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentType"
+              }
+            ],
+            "description": "Tipo de pagamento do boleto, podendo ser tributo (tribute) ou cobrança (charge)",
+            "example": "Charge"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
+              }
+            ],
+            "description": "Status do pagamento do boleto",
+            "example": "Completed"
+          },
+          "values": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.Values"
+              }
+            ],
+            "description": "Objeto que contém os valores do boleto",
+            "nullable": true
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Data de vencimento do boleto",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-10-10"
+          },
+          "paymentDate": {
+            "type": "string",
+            "description": "Data de pagamento",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-10-10"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Data de criação do pagamento (UTC -3)",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2023-10-10"
+          },
+          "scheduledDate": {
+            "type": "string",
+            "description": "Data de agendamento do pagamento (UTC -3)",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2023-10-10"
+          },
+          "settledAt": {
+            "type": "string",
+            "description": "Data-hora de consolidação de pagamento (UTC -3)",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2023-10-10T22:00:00.0000Z"
+          },
+          "payer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.Payer"
+              }
+            ],
+            "description": "Objeto que contém as informações do pagador",
+            "nullable": true
+          },
+          "payee": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.Payee"
+              }
+            ],
+            "description": "Objeto que contém as informações do recebedor",
+            "nullable": true
+          },
+          "guarantorDrawer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.GuarantorDrawer"
+              }
+            ],
+            "description": "Objeto que contém as informações do sacador avalista",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.ListBoletoPaymentResponseDto": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ListBoletoPaymentItemDto"
+            },
+            "description": "Lista de boletos retornados conforme o critério do filtro de listagem",
+            "nullable": true
+          },
+          "_metadata": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ListPaginatedResponseDto"
+              }
+            ],
+            "description": "Dados referentes a paginação",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.ListPaginatedResponseDto": {
+        "type": "object",
+        "properties": {
+          "hasMore": {
+            "type": "boolean",
+            "description": "Indica se existem mais itens além dos contidos na página atual",
+            "example": true
+          },
+          "itensPerPage": {
+            "type": "integer",
+            "description": "Indica o máximo de itens retornados por página",
+            "format": "int32",
+            "example": 100
+          },
+          "lastKeyId": {
+            "type": "string",
+            "description": "Identificador do último item solicitado e se refere à data de criação do boleto, no formato ISO 8601 yyyy-MM-ddTHH:mm:ssZ",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2024-04-09T17:33:57.873388Z"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.Payee": {
+        "type": "object",
+        "properties": {
+          "payeeName": {
+            "type": "string",
+            "description": "Beneficiário do boleto",
+            "nullable": true,
+            "example": "Maria Calçados LTDA"
+          },
+          "payeeDocumentNumber": {
+            "type": "string",
+            "description": "Número do CPF ou CNPJ do beneficiário, contendo apenas números",
+            "nullable": true,
+            "example": "22444555000133"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.Payer": {
+        "type": "object",
+        "properties": {
+          "payerName": {
+            "type": "string",
+            "description": "Nome do pagador do boleto",
+            "nullable": true,
+            "example": "João da Silva Costa"
+          },
+          "payerDocumentNumber": {
+            "type": "string",
+            "description": "Número do CPF ou CNPJ do pagador, contendo apenas números",
+            "nullable": true,
+            "example": "77788899900"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.ShowBoletoReceiptResponseDto": {
+        "type": "object",
+        "properties": {
+          "tribute": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowTributeDto"
+              }
+            ],
+            "description": "Objeto de retorno para pagamentos de boletos do tipo tributo",
+            "nullable": true
+          },
+          "charge": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.ShowChargeDto"
+              }
+            ],
+            "description": "Objeto de retorno para pagamentos de boletos do tipo cobraça ou aporte",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.ShowBoletoRefundResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Id da devolução",
+            "format": "uuid",
+            "example": "eff5af0b-cecf-4e17-884b-e6a650f583ad"
+          },
+          "boletoId": {
+            "type": "string",
+            "description": "Id do boleto que terá o pagamento estornado",
+            "format": "uuid",
+            "example": "79473cc1-d363-4fe7-88e2-c3ef282cb151"
+          },
+          "accountId": {
+            "type": "string",
+            "description": "Id da conta no core bancário",
+            "format": "uuid",
+            "example": "0a29e18b-21ab-44a5-80e3-3822a11bafb9"
+          },
+          "partnerId": {
+            "type": "string",
+            "description": "Id do parceiro no core bancário",
+            "format": "uuid",
+            "example": "e25b6d09-1c5c-4473-8a64-9dd5a93bec88"
+          },
+          "bankingTransactionId": {
+            "type": "string",
+            "description": "Id da transação no core bancário",
+            "format": "uuid",
+            "example": "4bb71db8-e929-4205-a9f4-24f8631dae2d"
+          },
+          "bankingTransactionTypeId": {
+            "type": "string",
+            "description": "Id do tipo de transação no core bancário",
+            "format": "uuid",
+            "example": "e737130a-c8a6-4427-bb74-c50c98aa39e2"
+          },
+          "barCode": {
+            "type": "string",
+            "description": "Código de barras do boleto original",
+            "nullable": true,
+            "example": "23793939700000501000001090009990075100265040"
+          },
+          "value": {
+            "type": "string",
+            "description": "Valor que foi pago na devolução do boleto",
+            "nullable": true,
+            "example": "100.00"
+          },
+          "originalValue": {
+            "type": "string",
+            "description": "Valor original do boleto. Deve ser igual ao valor da devolução",
+            "nullable": true,
+            "example": "100.00"
+          },
+          "payee": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.TransactionParty"
+              }
+            ],
+            "description": "Informações do beneficiário da devolução",
+            "nullable": true
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.RefundStatus"
+              }
+            ],
+            "description": "Status da devolução",
+            "example": "Completed"
+          },
+          "settledAt": {
+            "type": "string",
+            "description": "Data-hora que ocorreu a devolução",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2023-07-20T12:30:45.000Z"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.ShowBoletoResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Identificador único do pagamento do boleto",
+            "format": "uuid",
+            "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
+          },
+          "accountId": {
+            "type": "string",
+            "description": "Identificador único da conta vinculada ao pagamento do boleto",
+            "format": "uuid",
+            "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
+          },
+          "partnerId": {
+            "type": "string",
+            "description": "Id do parceiro no core bancário",
+            "format": "uuid",
+            "example": "70e7afc2-ffbc-4a51-b585-44c0f6873fa8"
+          },
+          "transactionId": {
+            "type": "string",
+            "description": "Id da transação",
+            "format": "uuid",
+            "example": "88080a55-7721-43d0-b8c1-cbe1e618953c"
+          },
+          "bankingTransactionId": {
+            "type": "string",
+            "description": "Id da transação no core bancário",
+            "format": "uuid",
+            "nullable": true,
+            "example": "88080a55-7721-43d0-b8c1-cbe1e618953c"
+          },
+          "bankingTransactionTypeId": {
+            "type": "string",
+            "description": "Id do tipo de transação no core bancário",
+            "format": "uuid",
+            "nullable": true,
+            "example": "4270fad6-a348-4a3b-da85-4f4818ae4fd5"
+          },
+          "barCode": {
+            "type": "string",
+            "description": "Código de barras do boleto",
+            "nullable": true,
+            "example": "04191957900000999992101003482702594607494036"
+          },
+          "externalTransactionId": {
+            "type": "string",
+            "description": "Id da transação no provedor liquidante",
+            "nullable": true,
+            "example": "396051802"
+          },
+          "fineValue": {
+            "type": "string",
+            "description": "Valor de multa",
+            "nullable": true,
+            "example": "2.00"
+          },
+          "interestValue": {
+            "type": "string",
+            "description": "Valor de juros",
+            "nullable": true,
+            "example": "1.00"
+          },
+          "discountValue": {
+            "type": "string",
+            "description": "Valor de desconto",
+            "nullable": true,
+            "example": "3.00"
+          },
+          "originalValue": {
+            "type": "string",
+            "description": "Valor original do boleto",
+            "nullable": true,
+            "example": "100.00"
+          },
+          "calculatedValue": {
+            "type": "string",
+            "description": "Valor final calculado, já contendo descontos, juros e multa",
+            "nullable": true,
+            "example": "156.40"
+          },
+          "paidValue": {
+            "type": "string",
+            "description": "Valor pago - o valor pago pode ser diferente do valor calculado, caso haja prévia autorização do emissor do boleto para que isso ocorra",
+            "nullable": true,
+            "example": "150.20"
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Data de vencimento do boleto",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-10-10"
+          },
+          "paymentDate": {
+            "type": "string",
+            "description": "Data de pagamento",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-10-10"
+          },
+          "settledAt": {
+            "type": "string",
+            "description": "Data-hora de consolidação de pagamento (UTC -3)",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2023-10-10T22:00:00.0000Z"
+          },
+          "type": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentType"
+              }
+            ],
+            "description": "Tipo de pagamento do boleto, podendo ser tributo (tribute) ou cobrança (charge)",
+            "example": "Charge"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
+              }
+            ],
+            "description": "Status do pagamento do boleto",
+            "example": "Completed"
+          },
+          "payerName": {
+            "type": "string",
+            "description": "Nome do pagador do boleto",
+            "nullable": true,
+            "example": "João da Silva Costa"
+          },
+          "payerDocumentNumber": {
+            "type": "string",
+            "description": "Número do CPF ou CNPJ do pagador, contendo apenas números",
+            "nullable": true,
+            "example": "77788899900"
+          },
+          "payeeName": {
+            "type": "string",
+            "description": "Beneficiário do boleto",
+            "nullable": true,
+            "example": "Maria Calçados LTDA"
+          },
+          "payeeDocumentNumber": {
+            "type": "string",
+            "description": "Número do CPF ou CNPJ do beneficiário, contendo apenas números",
+            "nullable": true,
+            "example": "22444555000133"
+          },
+          "guarantorDrawerName": {
+            "type": "string",
+            "description": "Nome do sacador avalista, no caso de boletos de tributo é o próprio PayeeName.",
+            "nullable": true,
+            "example": "2023-12-15"
+          },
+          "guarantorDrawerDocumentNumber": {
+            "type": "string",
+            "description": "Número do CPF ou CNPJ do sacador avalista, no caso de boletos de tributo é o próprio PayeeDocument.",
+            "nullable": true,
+            "example": "2023-12-15"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.ShowChargeDto": {
+        "type": "object",
+        "properties": {
+          "boletoId": {
+            "type": "string",
+            "description": "Identificador único do pagamento do boleto",
+            "format": "uuid",
+            "example": "c38a8589-8892-456e-8f52-b2d8e1096f73"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
+              }
+            ],
+            "description": "Status do pagamento do boleto",
+            "nullable": true
+          },
+          "bankingTransactionId": {
+            "type": "string",
+            "description": "ID da transação no core bancário",
+            "format": "uuid",
+            "nullable": true,
+            "example": "f17d47af-4875-469c-9583-0148700c5928"
+          },
+          "bankingTransactionTypeId": {
+            "type": "string",
+            "description": "Id do tipo de transação no core bancário",
+            "format": "uuid",
+            "nullable": true,
+            "example": "c4fcde0c-e931-486e-b6ae-dbd242b71469"
+          },
+          "debitedDraweeName": {
+            "type": "string",
+            "description": "Nome do proprietário da conta bancária que o dinheiro irá ser debitado",
+            "nullable": true,
+            "example": "Maria da Silva Rocha"
+          },
+          "payeeTradeName": {
+            "type": "string",
+            "description": "Nome Fantasia do beneficiário",
+            "nullable": true,
+            "example": "Calçados Mágicos"
+          },
+          "payeeName": {
+            "type": "string",
+            "description": "Nome do beneficiário",
+            "nullable": true,
+            "example": "José da Silva Pereira"
+          },
+          "payeeDocumentNumber": {
+            "type": "string",
+            "description": "Número do CPF ou CNPJ do beneficiário, contendo apenas números",
+            "nullable": true,
+            "example": "77788899900"
+          },
+          "payerName": {
+            "type": "string",
+            "description": "Nome do pagador",
+            "nullable": true,
+            "example": "Carlos Martins da Silva"
+          },
+          "payerDocumentNumber": {
+            "type": "string",
+            "description": "Número do CPF ou CNPJ do pagador, contendo apenas números",
+            "nullable": true,
+            "example": "77788899900"
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Data de vencimento do boleto",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-10-25"
+          },
+          "originalValue": {
+            "type": "string",
+            "description": "Valor original do boleto",
+            "nullable": true,
+            "example": "50.00"
+          },
+          "calculatedValue": {
+            "type": "string",
+            "description": "Valor final calculado, já contendo descontos, juros e multa",
+            "nullable": true,
+            "example": "56.40"
+          },
+          "fineValue": {
+            "type": "string",
+            "description": "Valor de multa",
+            "nullable": true,
+            "example": "2.00"
+          },
+          "interestValue": {
+            "type": "string",
+            "description": "Valor de juros",
+            "nullable": true,
+            "example": "5.00"
+          },
+          "discountValue": {
+            "type": "string",
+            "description": "Valor de desconto",
+            "nullable": true,
+            "example": "1.00"
+          },
+          "rebateValue": {
+            "type": "string",
+            "description": "Valor de abatimento",
+            "nullable": true,
+            "example": "1.00"
+          },
+          "paidValue": {
+            "type": "string",
+            "description": "Valor pago - o valor pago pode ser diferente do valor calculado, caso haja prévia autorização do emissor do boleto para que isso ocorra",
+            "nullable": true,
+            "example": "54.20"
+          },
+          "transactionId": {
+            "type": "string",
+            "description": "Id da transação",
+            "format": "uuid",
+            "example": "75906707-8c31-479c-b354-aa805c4cefbc"
+          },
+          "digitableLine": {
+            "type": "string",
+            "description": "Linha digitável do boleto",
+            "nullable": true,
+            "example": "74891117110009340911803601711066871200000020100"
+          },
+          "receiverBankName": {
+            "type": "string",
+            "description": "Nome do banco recebedor do valor do boleto",
+            "nullable": true,
+            "example": "BANCO BRADESCO S.A"
+          },
+          "bankName": {
+            "type": "string",
+            "description": "Nome do banco emissor do boleto",
+            "nullable": true,
+            "example": "BANCO BRADESCO S.A"
+          },
+          "maxValue": {
+            "type": "string",
+            "description": "Valor máximo que é aceito como pagamento do boleto",
+            "nullable": true,
+            "example": "1000.00"
+          },
+          "minValue": {
+            "type": "string",
+            "description": "Valor mínimo que é aceito como pagamento do boleto",
+            "nullable": true,
+            "example": "2.00"
+          },
+          "scheduleDate": {
+            "type": "string",
+            "description": "Data do agendamento para o boleto ser liquidado",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-07-08"
+          },
+          "paymentDate": {
+            "type": "string",
+            "description": "Data em que o pagamento foi efetivado.",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-07-08"
+          },
+          "debitDate": {
+            "type": "string",
+            "description": "Data em que o valor é debitado da conta do cliente pagador.",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-07-08"
+          },
+          "guarantorDrawerName": {
+            "type": "string",
+            "description": "Nome do sacador avalista, no caso de boletos de tributo é o próprio CompanyName",
+            "nullable": true,
+            "example": "2023-12-15"
+          },
+          "guarantorDrawerDocumentNumber": {
+            "type": "string",
+            "description": "Número do CPF ou CNPJ do sacador avalista, no caso de boletos de tributo é o próprio CnpjCeiIdentifier",
+            "nullable": true,
+            "example": "2023-12-15"
+          },
+          "protocolNumberCbca": {
+            "type": "string",
+            "description": "Número do protocolo gerado pelo banco provedor.",
+            "nullable": true,
+            "example": "85243622"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.ShowTributeDto": {
+        "type": "object",
+        "properties": {
+          "boletoId": {
+            "type": "string",
+            "description": "Identificador único do pagamento do boleto",
+            "format": "uuid",
+            "example": "c3f18907-654b-4945-8407-1e501390dd43"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
+              }
+            ],
+            "description": "Status do pagamento do boleto",
+            "nullable": true
+          },
+          "bankingTransactionId": {
+            "type": "string",
+            "description": "ID da transação no core bancário",
+            "format": "uuid",
+            "nullable": true,
+            "example": "f17d47af-4875-469c-9583-0148700c5928"
+          },
+          "bankingTransactionTypeId": {
+            "type": "string",
+            "description": "Id do tipo de transação no core bancário",
+            "format": "uuid",
+            "nullable": true,
+            "example": "c4fcde0c-e931-486e-b6ae-dbd242b71469"
+          },
+          "bank": {
+            "type": "integer",
+            "description": "Número do COMPE do banco do boleto",
+            "format": "int32",
+            "example": 237
+          },
+          "bankAuthentication": {
+            "type": "integer",
+            "description": "Autenticação bancária",
+            "format": "int32",
+            "example": 45509962
+          },
+          "debitDate": {
+            "type": "string",
+            "description": "Data em que o valor é debitado da conta do cliente pagador.",
+            "format": "date",
+            "example": "2023-06-20"
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Data de vencimento do boleto",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-06-21"
+          },
+          "calculatedValue": {
+            "type": "string",
+            "description": "Valor final calculado, já incluso descontos, juros e multa",
+            "nullable": true,
+            "example": "92.50"
+          },
+          "paidValue": {
+            "type": "string",
+            "description": "Valor pago",
+            "nullable": true,
+            "example": "92.50"
+          },
+          "fineValue": {
+            "type": "string",
+            "description": "Valor de multa",
+            "nullable": true,
+            "example": "1.00"
+          },
+          "interestValue": {
+            "type": "string",
+            "description": "Valor de juros",
+            "nullable": true,
+            "example": "1.20"
+          },
+          "discountValue": {
+            "type": "string",
+            "description": "Valor de desconto",
+            "nullable": true,
+            "example": "2.30"
+          },
+          "keyFieldIdentifier": {
+            "type": "string",
+            "description": "Identificação do campo-chave do boleto",
+            "nullable": true,
+            "example": "RGI"
+          },
+          "documentKeyFieldIdentifier": {
+            "type": "string",
+            "description": "Identificação do campo-chave do documento",
+            "nullable": true,
+            "example": "09831571"
+          },
+          "tradeName": {
+            "type": "string",
+            "description": "Nome fantasia da empresa que está cobrando o tributo",
+            "nullable": true,
+            "example": "SABESP/SP"
+          },
+          "expirationDate": {
+            "type": "string",
+            "description": "Data de expiração do boleto",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-07-15"
+          },
+          "cnpjCeiIdentifier": {
+            "type": "string",
+            "description": "Identificador do CPF ou CNPJ",
+            "nullable": true,
+            "example": null
+          },
+          "proofType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.ProofType"
+              }
+            ],
+            "description": "Tipo do comprovante de pagamento",
+            "example": "Iptu"
+          },
+          "incomeCode": {
+            "type": "string",
+            "description": "Código da receita do pagamento",
+            "nullable": true,
+            "example": "0013"
+          },
+          "stateCode": {
+            "type": "string",
+            "description": "Estado abreviado, com dois caracteres",
+            "nullable": true,
+            "example": "SP"
+          },
+          "diDsiAiim": {
+            "type": "string",
+            "description": "DI/DSI - AIIM",
+            "nullable": true,
+            "example": "0"
+          },
+          "cityCode": {
+            "type": "string",
+            "description": "Código do município",
+            "nullable": true,
+            "example": "2927408"
+          },
+          "dsDsiAiimIdentifier": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.DsDsiAiimIdentifier"
+              }
+            ],
+            "description": "Identificador do DS/DSI - AIIM",
+            "nullable": true,
+            "example": "0"
+          },
+          "dsDsiAiimDescription": {
+            "type": "string",
+            "description": "Descrição do DS/DSI - AIIM",
+            "nullable": true,
+            "example": "0"
+          },
+          "paymentDate": {
+            "type": "string",
+            "description": "Data de pagamento",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-06-20"
+          },
+          "verificationTime": {
+            "type": "string",
+            "description": "Período de apuração",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-06-25"
+          },
+          "accumulateGrossIncomeAmount": {
+            "type": "string",
+            "description": "Valor da receita bruta acumulada",
+            "nullable": true,
+            "example": "10.0"
+          },
+          "percentageValue": {
+            "type": "string",
+            "description": "Percentual aplicado",
+            "nullable": true,
+            "example": "0.1"
+          },
+          "companyName": {
+            "type": "string",
+            "description": "Nome da empresa conveniada",
+            "nullable": true,
+            "example": "SABESP"
+          },
+          "barCode": {
+            "type": "string",
+            "description": "Código de barras do boleto",
+            "nullable": true,
+            "example": "04191957900000999992101003482702594607494036"
+          },
+          "dareControlNumber": {
+            "type": "string",
+            "description": "Número de controle do DARE",
+            "nullable": true,
+            "example": "180190000822812"
+          },
+          "tabNumber": {
+            "type": "string",
+            "description": "Número da guia",
+            "nullable": true,
+            "example": "1"
+          },
+          "labelNumber": {
+            "type": "string",
+            "description": "Número da etiqueta",
+            "nullable": true,
+            "example": "2"
+          },
+          "vehicleType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.VehicleType"
+              }
+            ],
+            "description": "Tipo de veículo",
+            "example": "Airship"
+          },
+          "vehicleIdentifier": {
+            "type": "string",
+            "description": "Identificador do veículo",
+            "nullable": true,
+            "example": "ABC1234"
+          },
+          "quota": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.InstallmentQuota"
+              }
+            ],
+            "description": "Informa o tipo de parcelamento do IPVA",
+            "nullable": true,
+            "example": "Three"
+          },
+          "dueDateDarf": {
+            "type": "string",
+            "description": "Data de vencimento para o comprovante Darf",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-06-19"
+          },
+          "darfIncomeCode": {
+            "type": "string",
+            "description": "Código da receita para o comprovante Darf",
+            "nullable": true,
+            "example": "0019"
+          },
+          "darfPrincipalDocumentNumber": {
+            "type": "string",
+            "description": "CPF ou CNPJ para o comprovante Darf, contendo apenas números e sem o dígito verificador",
+            "nullable": true,
+            "example": "777888999"
+          },
+          "competenceDate": {
+            "type": "string",
+            "description": "Data de competência",
+            "nullable": true,
+            "example": "07-2023"
+          },
+          "exerciseYear": {
+            "type": "string",
+            "description": "Ano de exercicio",
+            "nullable": true,
+            "example": "2023"
+          },
+          "connectivitySeal": {
+            "type": "string",
+            "description": "Lacre de conectividade",
+            "nullable": true,
+            "example": "000000000000000"
+          },
+          "fgtsIdentifier": {
+            "type": "string",
+            "description": "Identificador do FGTS",
+            "nullable": true,
+            "example": "000000000000000"
+          },
+          "paymentTime": {
+            "type": "string",
+            "description": "Hora do pagamento",
+            "nullable": true,
+            "example": "131254"
+          },
+          "scheduleDate": {
+            "type": "string",
+            "description": "Data do agendamento da liquidação",
+            "format": "date",
+            "nullable": true,
+            "example": "2023-07-08"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.TransactionParty": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nome do beneficiário",
+            "nullable": true,
+            "example": "José da Silva Pereira"
+          },
+          "document": {
+            "type": "string",
+            "description": "Documento do beneficiário, contendo apenas números, pode ser CPF ou CNPJ",
+            "nullable": true,
+            "example": "77788899900"
+          },
+          "accountNumber": {
+            "type": "string",
+            "description": "Conta do beneficiário",
+            "nullable": true,
+            "example": "75557"
+          },
+          "branch": {
+            "type": "string",
+            "description": "Agência do beneficiário",
+            "nullable": true,
+            "example": "3553"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.UnlockPaymentResponseDto": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BoletoPayments.Contracts.Enums.PaymentStatus"
+              }
+            ],
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.UnlockPaymentsResponseDto": {
+        "type": "object",
+        "properties": {
+          "payments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoletoPayments.Contracts.Responses.UnlockPaymentResponseDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "BoletoPayments.Contracts.Responses.Values": {
+        "type": "object",
+        "properties": {
+          "fineValue": {
+            "type": "string",
+            "description": "Valor de multa",
+            "nullable": true,
+            "example": "2.00"
+          },
+          "interestValue": {
+            "type": "string",
+            "description": "Valor de juros",
+            "nullable": true,
+            "example": "1.00"
+          },
+          "discountValue": {
+            "type": "string",
+            "description": "Valor de desconto",
+            "nullable": true,
+            "example": "3.00"
+          },
+          "originalValue": {
+            "type": "string",
+            "description": "Valor original do boleto",
+            "nullable": true,
+            "example": "100.00"
+          },
+          "calculatedValue": {
+            "type": "string",
+            "description": "Valor final calculado, já contendo descontos, juros e multa",
+            "nullable": true,
+            "example": "156.40"
+          },
+          "paidValue": {
+            "type": "string",
+            "description": "Valor pago - o valor pago pode ser diferente do valor calculado, caso haja prévia autorização do emissor do boleto para que isso ocorra",
+            "nullable": true,
+            "example": "150.20"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Microsoft.AspNetCore.Mvc.ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      }
     }
   }
+}
